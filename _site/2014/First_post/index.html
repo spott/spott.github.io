@@ -1,0 +1,160 @@
+
+
+<meta charset="utf-8">
+<title>Toward a more optimized GPU reduce &#8211; Spotted Thoughts</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Toward a more optimized GPU reduce &#8211; Spotted Thoughts">
+<meta property="og:description" content="This is my own interpretation of [these slides](http://developer.download.nvidia.com/assets/cuda/files/reduction.pdf)...">
+<meta property="og:url" content="/2014/First_post/">
+<meta property="og:site_name" content="Spotted Thoughts">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Spotted Thoughts Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header darken">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">Spotted Thoughts</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="Spotted Thoughts">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/spott/" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article pad-top">
+
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>Toward a more optimized GPU reduce</h1>
+            <p class="date">Jan 05, 2014</p>
+            <p class="intro"></p>
+          </hgroup>
+        </header>
+
+        <p>This is my own interpretation of <a href="http://developer.download.nvidia.com/assets/cuda/files/reduction.pdf">these slides</a>, and some other information I have picked up on the way.  A lot of this is likely to be wrong, please <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#097;&#110;&#100;&#114;&#101;&#119;&#046;&#115;&#112;&#111;&#116;&#116;&#064;&#103;&#109;&#097;&#105;&#108;&#046;&#099;&#111;&#109;">let me know</a> what I have gotten wrong.</p>
+
+<h2 id="throughput-vs-latency-cores">Throughput vs. Latency cores:</h2>
+
+<p>Code that is optimized for GPUs is typically optimized for a latency optimized cores:  something like a classic CPU.  These chips have lots of optimizations that make classic sequential code run faster.  These optimizations include things like cache prefetching (to pull desired data out of main memory and put it into the faster L2 and L1 caches) and branch prediction (to reduce the cost of an if statment, one of the branches is guessed to be true, and both the if statement and the guessed branch are run through the pipeline simultaneously).  Most latency optimized cores have only a couple hardware threads available per core:  they aren’t designed to quickly switch between threads.  However, throughput optimized cores are designed to quickly switch between multiple threads.  They reduce memory latency by quickly switching away from threads that have stalled, allowing other threads to run to fill up “dead time”.</p>
+
+<p>This means that cores that are throughput optimized are designed for many threads to be available (to reduce latency), and for many instructions to be run on many threads: so called “Single Instruction, Multiple Thread” cores.</p>
+
+<h2 id="structure-of-a-parallel-reduce-kernel-for-throughput-devices">Structure of a parallel reduce kernel for throughput devices:</h2>
+
+<p>Throughput devices aren’t able to handle multiple <code>blocks</code> being synchronized together, from within a single kernel</p>
+
+
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;Toward a more optimized GPU reduce&quot;%20/2014/First_post/%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+      </article>
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/2014/First_post/" title="Toward a more optimized GPU reduce">Toward a more optimized GPU... </a></span>
+              <span class="date">Jan 05, 2014</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/2013/Outline/" title="Breakdown in the Nonlinear Susceptibility">Breakdown in the Nonlinear ... </a></span>
+              <span class="date">Nov 16, 2013</span>
+            </li>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/2013/hello_world/" title="Hello_world">Hello_world </a></span>
+              <span class="date">Oct 15, 2013</span>
+            </li>
+        
+      </ol>
+
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:andrew.spott@gmail.com"><span class="foot-link">Contact Me</span></a></li>
+
+            
+
+
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2014 Andrew Spott. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+
+
+  </body>
+</html>
+

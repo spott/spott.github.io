@@ -1,0 +1,20 @@
+title:      Spotted Thoughts
+
+owner:
+    name:   Andrew Spott
+    email:  andrew.spott@gmail.com
+    github: spott
+
+links:
+    - title: About
+      url: /about
+    - title: Github
+      url: https://github.com/spott/
+      external: true
+
+markdown: kramdown
+pygments: true
+lsi: true
+
+permalink: /:year/:title/
+paginate: 20
