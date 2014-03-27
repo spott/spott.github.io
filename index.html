@@ -1,3 +1,7 @@
+---
+layout: home
+title: Andrew Spott
+---
 <!doctype html>
 <html>
   <head>
@@ -16,7 +20,14 @@
     <div class="wrapper">
       <header>
         <h1>Spott.github.io</h1>
-        <p>Pages!</p>
+        <ul>
+            {% for post in site.posts %}
+            <li>
+            <a href="{{ post.url }}">{{ post.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <!--<p>Pages!</p>-->
 
 
         <p class="view"><a href="https://github.com/spott">View My GitHub Profile</a></p>
