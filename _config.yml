@@ -18,3 +18,8 @@ lsi: true
 
 permalink: /:year/:title/
 paginate: 20
+
+description: Pages!
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-midnight
