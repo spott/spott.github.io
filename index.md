@@ -64,8 +64,6 @@ analysis.
 2. A. Spott, A. Becker, and A. Jaron-Becker: Transition from perturbative to nonperturbative interaction in low-order-harmonic generation
 3. A. Spott, A. Jaron-Becker, and A. Becker: Time-dependent susceptibility of helium atom in intense laser pulses} (in review.)
 
-> To a great mind, nothing is little
-
 <!-- ## References -->
 
 <!-- * Foo Bar: Head of Department, Placeholder Names, Lorem -->
