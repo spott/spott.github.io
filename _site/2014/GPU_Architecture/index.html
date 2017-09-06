@@ -1,0 +1,185 @@
+
+
+<meta charset="utf-8">
+<title>GPU Architecture &#8211; Spotted Thoughts</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+
+
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="GPU Architecture &#8211; Spotted Thoughts">
+<meta property="og:description" content=" A lot of this is likely to be wrong, please [let me know](mailto:andrew.spott@gmail.com) what I have gotten wrong.*A...">
+<meta property="og:url" content="/2014/GPU_Architecture/">
+<meta property="og:site_name" content="Spotted Thoughts">
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Spotted Thoughts Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Type -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic" rel='stylesheet' type='text/css' />
+<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/assets/css/entypo.css" media="all">
+
+<!-- In order to use Calendas Plus, you must first purchase it. Then, create a font-face package using FontSquirrel.
+<link rel='stylesheet' href='/assets/cal.css' media='all' />
+-->
+
+
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/i.css">
+
+<!-- Fresh Squeezed jQuery -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<div id="bump">
+  <body class="">
+    <header class="site-header darken">
+      <div class="wrap">
+        <hgroup>
+          <h1><a href="/">Spotted Thoughts</a></h1>
+        </hgroup>
+        <a href="#nav" class="menu"><span class='icons'>☰</span></a>
+        <nav role="navigation">
+          <ul>
+            <li>
+              <a href="/" title="Spotted Thoughts">Home</a>
+            </li>
+            
+            
+                <li><a href="/about" >About</a></li>
+            
+                <li><a href="https://github.com/spott/" target="_blank">Github</a></li>
+            
+
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+
+<section class="article pad-top">
+
+
+
+
+      <article class="wrap post">
+        <header class="post-header">
+          <hgroup>
+            <h1>GPU Architecture</h1>
+            <p class="date">Mar 26, 2014</p>
+            <p class="intro"></p>
+          </hgroup>
+        </header>
+
+        <p>A lot of this is likely to be wrong, please <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#097;&#110;&#100;&#114;&#101;&#119;&#046;&#115;&#112;&#111;&#116;&#116;&#064;&#103;&#109;&#097;&#105;&#108;&#046;&#099;&#111;&#109;">let me know</a> what I have gotten wrong.</p>
+
+<p><em>A GPU is just a whole bunch of CPU cores, right?</em></p>
+
+<p>What is the difference between a typical x86 multicore CPU, and the nvidia GPU that we will be doing our computation on?</p>
+
+<h2 id="throughput-vs-latency-cores">Throughput vs. Latency cores:</h2>
+
+<p>GPUs can be thought of as <em>throughput</em> cores, versus the more natural <em>latency</em> cores that make up your typical CPU.  A <em>latency</em> core is designed to reduce latency in operations, reducing the amount of time that is spent on any specific calculation.  It is essentially designed to take a sequence of instructions and execute them as quickly as possible.  To do this, it has a few prominent tools:  the cache and the branch prediction.  The cache allows the CPU to spend less time waiting on memory by grabbing lots of it at the same time, before you need it.  Branch prediction allows the CPU to “guess” at the output of an if statement and start executing that branch before it has finished executing the if statement itself.  If it guesses wrong, then it has to flush the pipeline<sup id="fnref:pipeline"><a href="#fn:pipeline" class="footnote">1</a></sup> and restart; but if it guesses right (which it does on modern processors &gt; 90% of the time), then it got a head start.  The CPU is fast because it calculates quickly.</p>
+
+<p><em>Throughput</em> cores are a different beast entirely.  A <em>throughput</em> core is designed to increase the number of calculations being done, at the expense of the speed of doing one calculation.  This means lots and lots of parallelism.  The tools in a <em>throughput</em> core’s toolbox are simpler - no branch prediction or multilevel caches - but instead a lot of hardware threads, a long pipeline and many, many cores.  The long pipeline allows for the many different threads to be running at the same time.  The lots of threads allows for the mitigation of memory latency by switching away from a thread when the data it needs hasn’t arrived yet.  The GPU is fast because it calculates lots of things at the same time.</p>
+
+<h2 id="structure-of-a-gpu">Structure of a GPU:</h2>
+
+<p>In CUDA enabled devices, the device is logically broken up into three different <em>hierarchies</em>. These are, from largest to smallest:</p>
+
+<ul>
+  <li>Grid: this is the sum total of all the threads that are being run for this kernel</li>
+  <li>Block: a subset of those threads are run as a “block”.  <code>__synchthreads()</code> can be used as a barrier between different threads inside a block.  </li>
+  <li>Warp: usually 32 threads that are run in lockstep.  These threads are essentially running the same instruction at the same time on different pieces of data<sup id="fnref:simd"><a href="#fn:simd" class="footnote">2</a></sup>.</li>
+</ul>
+
+<p>These different hierarchies share different levels of memory.</p>
+
+<ul>
+  <li>Warp:  threads on the same warp share registers.</li>
+  <li>Block: threads in the same block have fast shared memory in common.  This block of memory is also shared with the L1 cache, which can be be shared between different threads on the SM (“core” of the GPU)</li>
+  <li>Grid:  all threads on the grid have access to main GPU memory.  They also share L2 cache, if it exists.</li>
+</ul>
+
+<h2 id="what-does-it-all-mean">What does it all mean?</h2>
+
+<p>This information allows us to think about performance on the GPU.  There are a few things that we can gleam from our limited information.</p>
+
+<p>The GPU is best at executing the same instruction on lots of pieces of data.   For example, if we have an if statement that executes different branches for different threads on the same warp, we know that this will not be ideal:  approximately half the threads will sit idle while the others execute their branch.  We also know that data coalescing (accessing data in contiguous blocks) is important.  It allows the data to be put in the much faster shared memory and L1 cache, rather than  having to go all the way to main memory.  Since different blocks can’t share memory, it is important to group your computations in such a way that threads in a block share data.  However, because all threads in a block are generally executed on the same SM, we want to split up our execution between different blocks to use the whole device.</p>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:pipeline">
+      <p>The pipeline can be thought of as a bunch of instructions being executed back to back on different data.  For example, if there are two instructions that take 3 cycles to complete, a proper pipeline allows them both to complete in 5 cycles because they are running back to back.<a href="#fnref:pipeline" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:simd">
+      <p>single instruction multiple data:  the “core” of the GPU takes multiple pieces of data but only one instruction at a time for that data.<a href="#fnref:simd" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+
+      <a class="share" href="https://twitter.com/intent/tweet?text=&quot;GPU Architecture&quot;%20/2014/GPU_Architecture/%20via%20&#64;" data-dnt="true">Share</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+      
+
+      </article>
+    </section>
+</div>
+
+<div class="push"></div>
+  <footer>
+    <aside class="wrap">
+      <ol class="prev-posts">
+        <p class="list-title">Recent Posts</p>
+         <!-- for1 -->
+            <li>
+              <span class="recent-title"><a href="/2014/GPU_Architecture/" title="GPU Architecture">GPU Architecture </a></span>
+              <span class="date">Mar 26, 2014</span>
+            </li>
+        
+      </ol>
+
+      <div class="social">
+        <ul>
+            <li><a id="mail" href="mailto:andrew.spott@gmail.com"><span class="foot-link">Contact Me</span></a></li>
+
+            
+
+
+            
+        </ul>
+    </div>
+    </aside>
+    <small>&copy; 2014 Andrew Spott. Powered by <a href="http://jekyllrb.com">Jekyll</a> using the <a href="http://jekyll.gtat.me/about">Balzac</a> theme.</small>
+  </footer>
+
+  <!-- If they're out, get some from the cellar -->
+  <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+  <script src="/assets/js/retina.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/assets/js/scripts.js"></script>
+
+
+  </body>
+</html>
+
