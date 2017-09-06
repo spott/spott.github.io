@@ -1,6 +1,6 @@
 title: Andrew Spott
 url: "http://spott.github.io"
-baseurl: "/about"
+baseurl: "/"
 
 markdown: kramdown
 
