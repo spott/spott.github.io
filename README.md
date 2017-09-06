@@ -1,4 +1,0 @@
-spott.github.io
-===============
-
-Website
