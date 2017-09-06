@@ -9,4 +9,4 @@ is_contact: true
 
 ## Social
 
-2. [LinkedIn](https://www.linkedin.com/in/aspott/)
+* [LinkedIn](https://www.linkedin.com/in/aspott/)
